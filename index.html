@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Party Entry Mobile App</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="PartyEntry">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 12px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: var(--primary);
+            font-size: 1.25rem;
+            text-align: center;
+        }
+
+        .summary-box {
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .summary-header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .summary-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .summary-item-select {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #ffffff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .summary-bar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .summary-bar div {
+            background: #eff6ff;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 6px;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .summary-bar input {
+            width: 100%;
+            margin-top: 4px;
+            padding: 6px 2px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-weight: 700;
+            text-align: center;
+            background: #ffffff;
+            font-size: 0.9rem;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            max-height: 55vh;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            min-width: 500px;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 4px;
+            text-align: center;
+        }
+
+        th {
+            background: #eff6ff;
+            font-weight: 700;
+            font-size: 0.8rem;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        tfoot {
+            position: sticky;
+            bottom: 0;
+            background: #dbeafe;
+            z-index: 1;
+        }
+
+        td:nth-child(1), th:nth-child(1) { width: 28%; }
+        td:nth-child(2), th:nth-child(2) { width: 22%; }
+        td:nth-child(3), th:nth-child(3) { width: 16%; }
+        td:nth-child(4), th:nth-child(4) { width: 16%; }
+        td:nth-child(5), th:nth-child(5) { display: none; }
+        td:nth-child(6), th:nth-child(6) { width: 9%; }
+        td:nth-child(7), th:nth-child(7) { width: 9%; }
+
+        td select, td input, tfoot input {
+            width: 100%;
+            padding: 6px 2px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 0.82rem;
+            text-align: center;
+            background: #ffffff;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        td input[readonly], tfoot input {
+            background: #f8fafc;
+            font-weight: 700;
+        }
+
+        .btn-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 16px;
+        }
+
+        button {
+            border: none;
+            padding: 10px 4px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border-radius: 8px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+        }
+
+        button:active { opacity: 0.8; }
+
+        .btn-save { background-color: var(--primary); }
+        .btn-print { background-color: #7c3aed; }
+        .btn-download { background-color: #10b981; }
+        .btn-clear { background-color: #ef4444; }
+
+        .party-manager {
+            margin-top: 20px;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+        }
+
+        .party-manager h3 {
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 90px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border-radius: 0; max-width: 100%; padding: 0; }
+            .table-wrap { max-height: none; overflow: visible; border: none; }
+            .btn-container, .party-manager, #newItemControls { display: none !important; }
+            tr.empty-row { display: none !important; }
+            table, th, td { border: 1px solid black !important; }
+            td input, td select { border: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Party Entry Form</h2>
+
+    <div class="summary-box">
+        <div class="summary-header">
+            <div class="summary-title-row">
+                <div class="summary-title">Purchase Result</div>
+                <select id="summaryItemSelector" class="summary-item-select"></select>
+            </div>
+            <div id="newItemControls" style="display:flex;gap:6px;align-items:center;">
+                <input id="newItemName" type="text" placeholder="New Item Name" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:.85rem;">
+                <button type="button" id="addItemBtn" style="background:#059669;padding:6px 12px;">+ Add Item</button>
+            </div>
+        </div>
+        <div class="summary-bar">
+            <div>Average Rate<input id="topResult" readonly></div>
+            <div>Total Weight<input id="topTotalWeight" readonly></div>
+            <div id="labResultCard" style="display:none;">Average Lab<input id="topLabResult" readonly></div>
+            <div id="moistureResultCard" style="display:none;">Average Moisture<input id="topMoistureResult" readonly></div>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table id="entryTable">
+            <thead>
+                <tr>
+                    <th>Party Name</th>
+                    <th>Item Name</th>
+                    <th>Weight</th>
+                    <th>Rate</th>
+                    <th style="display:none;">Amount</th>
+                    <th>Lab</th>
+                    <th>Moisture</th>
+                </tr>
+            </thead>
+            <tbody id="form-fields"></tbody>
+            <tfoot>
+                <tr>
+                    <th>Total</th>
+                    <th></th>
+                    <th><input id="totalWeight" readonly></th>
+                    <th></th>
+                    <th style="display:none;"><input id="totalAmount" readonly></th>
+                    <th><input id="totalLab" readonly></th>
+                    <th><input id="totalMoisture" readonly></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn-save" id="saveBtn">Save</button>
+        <button class="btn-print" onclick="window.print()">🖨 Print / PDF</button>
+        <button class="btn-download" id="downloadBtn">Download</button>
+        <button class="btn-clear" id="clearBtn">Clear</button>
+    </div>
+
+    <div class="party-manager">
+        <h3>Manage Party List</h3>
+        <textarea id="partyListInput"></textarea>
+        <button id="updatePartiesBtn" style="background:#0284c7;width:100%;margin-top:6px;">Update Party Dropdowns</button>
+    </div>
+</div>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch((err) => {
+                console.log('SW registration failed: ', err);
+            });
+        });
+    }
+
+    const INITIAL_PARTIES = [
+        "Party Alpha", "Party Beta", "Party Gamma", "Party Delta",
+        "Party Epsilon", "Party Zeta", "Party Eta", "Party Theta"
+    ];
+
+    const INITIAL_ITEMS = [
+        "Mustard", "Moong", "Chana", "Guwar", "Wheat", "Barley",
+        "Moth", "Till", "Bajra", "Narma", "Kapas", "Makka"
+    ];
+
+    let parties = JSON.parse(localStorage.getItem('parties')) || INITIAL_PARTIES;
+    let items = JSON.parse(localStorage.getItem('items')) || INITIAL_ITEMS;
+    const ROW_COUNT = 100;
+
+    function populateDropdowns() {
+        const itemSelector = document.getElementById('summaryItemSelector');
+        const prevSelected = itemSelector.value || "ALL";
+        itemSelector.innerHTML = '<option value="ALL">All Items (Combined)</option>';
+        items.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item;
+            opt.textContent = item;
+            itemSelector.appendChild(opt);
+        });
+        itemSelector.value = prevSelected;
+
+        for (let i = 1; i <= ROW_COUNT; i++) {
+            const partySel = document.getElementById(`cell_A${i}`);
+            const itemSel = document.getElementById(`cell_Item${i}`);
+            if (partySel) {
+                const currentVal = partySel.value;
+                partySel.innerHTML = '<option value="">-- Party --</option>' + 
+                    parties.map(p => `<option value="${p}">${p}</option>`).join('');
+                partySel.value = currentVal;
+            }
+            if (itemSel) {
+                const currentVal = itemSel.value;
+                itemSel.innerHTML = '<option value="">-- Item --</option>' + 
+                    items.map(it => `<option value="${it}">${it}</option>`).join('');
+                itemSel.value = currentVal;
+            }
+        }
+    }
+
+    function buildTable() {
+        const tbody = document.getElementById('form-fields');
+        tbody.innerHTML = '';
+        for (let i = 1; i <= ROW_COUNT; i++) {
+            const tr = document.createElement('tr');
+            tr.id = `row_${i}`;
+            tr.className = 'empty-row';
+            tr.innerHTML = `
+                <td><select id="cell_A${i}" data-row="${i}"></select></td>
+                <td><select id="cell_Item${i}" data-row="${i}"></select></td>
+                <td><input type="number" step="0.01" inputmode="decimal" id="cell_C${i}" data-row="${i}"></td>
+                <td><input type="number" step="0.01" inputmode="decimal" id="cell_D${i}" data-row="${i}"></td>
+                <td style="display:none;"><input type="number" step="0.01" id="cell_E${i}" readonly></td>
+                <td><input type="number" step="0.01" inputmode="decimal" id="cell_F${i}" data-row="${i}"></td>
+                <td><input type="number" step="0.01" inputmode="decimal" id="cell_G${i}" data-row="${i}"></td>
+            `;
+            tbody.appendChild(tr);
+        }
+    }
+
+    function calculate() {
+        let totalW = 0, totalAmt = 0;
+        let selectedItem = document.getElementById('summaryItemSelector').value;
+        let sumW = 0, sumAmt = 0, sumLab = 0, sumMoist = 0, countLab = 0, countMoist = 0;
+
+        for (let i = 1; i <= ROW_COUNT; i++) {
+            const tr = document.getElementById(`row_${i}`);
+            const item = document.getElementById(`cell_Item${i}`).value;
+            const w = parseFloat(document.getElementById(`cell_C${i}`).value) || 0;
+            const r = parseFloat(document.getElementById(`cell_D${i}`).value) || 0;
+            const lab = parseFloat(document.getElementById(`cell_F${i}`).value) || 0;
+            const moist = parseFloat(document.getElementById(`cell_G${i}`).value) || 0;
+            const amt = w * r;
+
+            document.getElementById(`cell_E${i}`).value = amt ? amt.toFixed(2) : '';
+
+            const isFilled = item || w || r || lab || moist || document.getElementById(`cell_A${i}`).value;
+            tr.className = isFilled ? '' : 'empty-row';
+
+            if (w > 0) {
+                totalW += w;
+                totalAmt += amt;
+            }
+
+            if (selectedItem === "ALL" || selectedItem === item) {
+                if (w > 0) {
+                    sumW += w;
+                    sumAmt += amt;
+                    if (lab) { sumLab += lab * w; countLab += w; }
+                    if (moist) { sumMoist += moist * w; countMoist += w; }
+                }
+            }
+        }
+
+        document.getElementById('totalWeight').value = totalW ? totalW.toFixed(2) : '';
+        document.getElementById('totalAmount').value = totalAmt ? totalAmt.toFixed(2) : '';
+        document.getElementById('topTotalWeight').value = sumW ? sumW.toFixed(2) : '0';
+        document.getElementById('topResult').value = sumW ? (sumAmt / sumW).toFixed(2) : '0';
+
+        const labCard = document.getElementById('labResultCard');
+        const moistCard = document.getElementById('moistureResultCard');
+
+        if (countLab > 0) {
+            labCard.style.display = 'block';
+            document.getElementById('topLabResult').value = (sumLab / countLab).toFixed(2);
+        } else {
+            labCard.style.display = 'none';
+        }
+
+        if (countMoist > 0) {
+            moistCard.style.display = 'block';
+            document.getElementById('topMoistureResult').value = (sumMoist / countMoist).toFixed(2);
+        } else {
+            moistCard.style.display = 'none';
+        }
+    }
+
+    function saveData() {
+        const rows = [];
+        for (let i = 1; i <= ROW_COUNT; i++) {
+            rows.push({
+                party: document.getElementById(`cell_A${i}`).value,
+                item: document.getElementById(`cell_Item${i}`).value,
+                weight: document.getElementById(`cell_C${i}`).value,
+                rate: document.getElementById(`cell_D${i}`).value,
+                lab: document.getElementById(`cell_F${i}`).value,
+                moisture: document.getElementById(`cell_G${i}`).value
+            });
+        }
+        localStorage.setItem('party_entries', JSON.stringify(rows));
+        alert('Entries saved successfully!');
+    }
+
+    function loadData() {
+        const saved = JSON.parse(localStorage.getItem('party_entries'));
+        if (!saved) return;
+        saved.forEach((row, idx) => {
+            const i = idx + 1;
+            if (i > ROW_COUNT) return;
+            document.getElementById(`cell_A${i}`).value = row.party || '';
+            document.getElementById(`cell_Item${i}`).value = row.item || '';
+            document.getElementById(`cell_C${i}`).value = row.weight || '';
+            document.getElementById(`cell_D${i}`).value = row.rate || '';
+            document.getElementById(`cell_F${i}`).value = row.lab || '';
+            document.getElementById(`cell_G${i}`).value = row.moisture || '';
+        });
+        calculate();
+    }
+
+    document.getElementById('form-fields').addEventListener('input', calculate);
+    document.getElementById('summaryItemSelector').addEventListener('change', calculate);
+
+    document.getElementById('addItemBtn').addEventListener('click', () => {
+        const input = document.getElementById('newItemName');
+        const name = input.value.trim();
+        if (name && !items.includes(name)) {
+            items.push(name);
+            localStorage.setItem('items', JSON.stringify(items));
+            populateDropdowns();
+            input.value = '';
+        }
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', saveData);
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+        if (confirm('Clear all input fields?')) {
+            document.querySelectorAll('#form-fields input, #form-fields select').forEach(el => el.value = '');
+            calculate();
+            localStorage.removeItem('party_entries');
+        }
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+        let csv = "Row,Party Name,Item Name,Weight,Rate,Amount,Lab,Moisture\n";
+        for (let i = 1; i <= ROW_COUNT; i++) {
+            const p = document.getElementById(`cell_A${i}`).value;
+            const it = document.getElementById(`cell_Item${i}`).value;
+            const w = document.getElementById(`cell_C${i}`).value;
+            const r = document.getElementById(`cell_D${i}`).value;
+            const a = document.getElementById(`cell_E${i}`).value;
+            const l = document.getElementById(`cell_F${i}`).value;
+            const m = document.getElementById(`cell_G${i}`).value;
+            if (p || it || w || r) {
+                csv += `"${i}","${p}","${it}","${w}","${r}","${a}","${l}","${m}"\n`;
+            }
+        }
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Party_Entries_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+    });
+
+    document.getElementById('updatePartiesBtn').addEventListener('click', () => {
+        const val = document.getElementById('partyListInput').value;
+        parties = val.split('\n').map(p => p.trim()).filter(Boolean);
+        localStorage.setItem('parties', JSON.stringify(parties));
+        populateDropdowns();
+        alert('Party list updated!');
+    });
+
+    buildTable();
+    populateDropdowns();
+    document.getElementById('partyListInput').value = parties.join('\n');
+    loadData();
+</script>
+</body>
+</html>
