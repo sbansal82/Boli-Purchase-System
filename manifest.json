@@ -1,6 +1,6 @@
 {
-  "name": "Party Entry Mobile App",
-  "short_name": "PartyEntry",
+  "name": "Bansal App",
+  "short_name": "Boli Purchase Entry",
   "description": "Party entry, rates, weight and purchase result calculator",
   "start_url": "./index.html",
   "display": "standalone",
