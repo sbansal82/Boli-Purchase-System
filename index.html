@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bansal App</title>
+    <title>Party Entry Mobile App</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -312,7 +312,7 @@
         <button class="btn-save" id="saveBtn">Save Now</button>
         <button class="btn-print" onclick="window.print()">🖨 Print / PDF</button>
         <button class="btn-download" id="downloadBtn">Download</button>
-        <button class="btn-clear" id="clearBtn">Clear</button>
+        <button class="btn-clear" id="clearBtn">Clear All</button>
     </div>
 
     <div class="party-manager">
@@ -341,8 +341,8 @@
         "Moth", "Till", "Bajra", "Narma", "Kapas", "Makka"
     ];
 
-    let parties = JSON.parse(localStorage.getItem('parties')) || INITIAL_PARTIES;
-    let items = JSON.parse(localStorage.getItem('items')) || INITIAL_ITEMS;
+    let parties = JSON.parse(localStorage.getItem('parties')) || [...INITIAL_PARTIES];
+    let items = JSON.parse(localStorage.getItem('items')) || [...INITIAL_ITEMS];
     const ROW_COUNT = 100;
     let autoSaveTimer = null;
 
@@ -356,7 +356,7 @@
             opt.textContent = item;
             itemSelector.appendChild(opt);
         });
-        itemSelector.value = prevSelected;
+        itemSelector.value = items.includes(prevSelected) || prevSelected === "ALL" ? prevSelected : "ALL";
 
         for (let i = 1; i <= ROW_COUNT; i++) {
             const partySel = document.getElementById(`cell_A${i}`);
@@ -397,7 +397,7 @@
     }
 
     function isNumeric(str) {
-        if (typeof str != "string") return false;
+        if (typeof str !== "string") return false;
         return !isNaN(str) && !isNaN(parseFloat(str)) && isFinite(str);
     }
 
@@ -437,7 +437,6 @@
                     sumW += w;
                     sumAmt += amt;
 
-                    // Parse Lab
                     if (rawLab !== '') {
                         if (isNumeric(rawLab)) {
                             sumLabNum += parseFloat(rawLab) * w;
@@ -448,7 +447,6 @@
                         }
                     }
 
-                    // Parse Moisture
                     if (rawMoist !== '') {
                         if (isNumeric(rawMoist)) {
                             sumMoistNum += parseFloat(rawMoist) * w;
@@ -467,7 +465,6 @@
         document.getElementById('topTotalWeight').value = sumW ? sumW.toFixed(2) : '0';
         document.getElementById('topResult').value = sumW ? (sumAmt / sumW).toFixed(2) : '0';
 
-        // Lab Summary & Footer
         const labCard = document.getElementById('labResultCard');
         if (countLabWeight > 0) {
             labCard.style.display = 'block';
@@ -485,7 +482,6 @@
             document.getElementById('totalLab').value = '';
         }
 
-        // Moisture Summary & Footer
         const moistCard = document.getElementById('moistureResultCard');
         if (countMoistWeight > 0) {
             moistCard.style.display = 'block';
@@ -612,12 +608,33 @@
 
     document.getElementById('saveBtn').addEventListener('click', () => saveData(true));
 
+    // Clear All (clears table, row entries, items, and auto-fill memory)
     document.getElementById('clearBtn').addEventListener('click', () => {
-        if (confirm('Clear all input fields?')) {
-            document.querySelectorAll('#form-fields input, #form-fields select').forEach(el => el.value = '');
-            calculate();
+        if (confirm('Clear all entries, custom items, and auto-fill storage?')) {
+            clearTimeout(autoSaveTimer);
+
+            // 1. Wipe out table inputs & selects
+            document.querySelectorAll('#form-fields input').forEach(el => el.value = '');
+            document.querySelectorAll('#form-fields select').forEach(el => el.value = '');
+
+            // 2. Clear all local storage caches
             localStorage.removeItem('party_entries');
-            triggerAutoSave();
+            localStorage.removeItem('party_history');
+            localStorage.removeItem('items');
+
+            // 3. Reset item list to default and re-populate
+            items = [...INITIAL_ITEMS];
+            document.getElementById('summaryItemSelector').value = 'ALL';
+            populateDropdowns();
+
+            // 4. Reset calculation results
+            calculate();
+
+            // 5. Update badge
+            const statusEl = document.getElementById('saveStatus');
+            statusEl.textContent = 'Cleared';
+            statusEl.style.color = '#ef4444';
+            statusEl.style.background = '#fee2e2';
         }
     });
 
