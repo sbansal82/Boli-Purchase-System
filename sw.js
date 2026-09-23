@@ -1,4 +1,4 @@
-const CACHE_NAME = 'party-entry-v2';
+const CACHE_NAME = 'party-entry-v3';
 const ASSETS = [
   './',
   './index.html',
