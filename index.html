@@ -261,6 +261,9 @@
         <span id="saveStatus">Auto-saved</span>
     </div>
 
+    <!-- Datalist for Party auto-filtering -->
+    <datalist id="partyDatalist"></datalist>
+
     <div class="summary-box">
         <div class="summary-header">
             <div class="summary-title-row">
@@ -318,7 +321,7 @@
     <div class="party-manager">
         <h3>Manage Party List</h3>
         <textarea id="partyListInput"></textarea>
-        <button id="updatePartiesBtn" style="background:#0284c7;width:100%;margin-top:6px;">Update Party Dropdowns</button>
+        <button id="updatePartiesBtn" style="background:#0284c7;width:100%;margin-top:6px;">Update Party List</button>
     </div>
 </div>
 
@@ -332,6 +335,7 @@
     }
 
     const INITIAL_PARTIES = [
+        "Kailash Kumar", "Kunal Trading", "Kishan Lal", "Kamal Traders",
         "Party Alpha", "Party Beta", "Party Gamma", "Party Delta",
         "Party Epsilon", "Party Zeta", "Party Eta", "Party Theta"
     ];
@@ -346,7 +350,17 @@
     const ROW_COUNT = 100;
     let autoSaveTimer = null;
 
-    function populateDropdowns() {
+    function populateDatalistAndDropdowns() {
+        // Populate party datalist for type-to-search
+        const datalist = document.getElementById('partyDatalist');
+        datalist.innerHTML = '';
+        parties.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p;
+            datalist.appendChild(opt);
+        });
+
+        // Summary Item Selector
         const itemSelector = document.getElementById('summaryItemSelector');
         const prevSelected = itemSelector.value || "ALL";
         itemSelector.innerHTML = '<option value="ALL">All Items (Combined)</option>';
@@ -358,15 +372,9 @@
         });
         itemSelector.value = items.includes(prevSelected) || prevSelected === "ALL" ? prevSelected : "ALL";
 
+        // Row item selectors
         for (let i = 1; i <= ROW_COUNT; i++) {
-            const partySel = document.getElementById(`cell_A${i}`);
             const itemSel = document.getElementById(`cell_Item${i}`);
-            if (partySel) {
-                const currentVal = partySel.value;
-                partySel.innerHTML = '<option value="">-- Party --</option>' + 
-                    parties.map(p => `<option value="${p}">${p}</option>`).join('');
-                partySel.value = currentVal;
-            }
             if (itemSel) {
                 const currentVal = itemSel.value;
                 itemSel.innerHTML = '<option value="">-- Item --</option>' + 
@@ -384,7 +392,7 @@
             tr.id = `row_${i}`;
             tr.className = 'empty-row';
             tr.innerHTML = `
-                <td><select id="cell_A${i}" data-row="${i}"></select></td>
+                <td><input type="text" id="cell_A${i}" data-row="${i}" list="partyDatalist" placeholder="Type Party..." autocomplete="off"></td>
                 <td><select id="cell_Item${i}" data-row="${i}"></select></td>
                 <td><input type="number" step="0.01" inputmode="decimal" id="cell_C${i}" data-row="${i}"></td>
                 <td><input type="number" step="0.01" inputmode="decimal" id="cell_D${i}" data-row="${i}"></td>
@@ -406,25 +414,22 @@
         let selectedItem = document.getElementById('summaryItemSelector').value;
         let sumW = 0, sumAmt = 0;
         
-        let sumLabNum = 0, countLabWeight = 0;
-        let lastLabText = "", labTextCount = 0;
-
-        let sumMoistNum = 0, countMoistWeight = 0;
-        let lastMoistText = "", moistTextCount = 0;
+        let sumLabNum = 0, countLabWeight = 0, lastLabText = "", labTextCount = 0;
+        let sumMoistNum = 0, countMoistWeight = 0, lastMoistText = "", moistTextCount = 0;
 
         for (let i = 1; i <= ROW_COUNT; i++) {
             const tr = document.getElementById(`row_${i}`);
+            const party = document.getElementById(`cell_A${i}`).value.trim();
             const item = document.getElementById(`cell_Item${i}`).value;
             const w = parseFloat(document.getElementById(`cell_C${i}`).value) || 0;
             const r = parseFloat(document.getElementById(`cell_D${i}`).value) || 0;
-            
             const rawLab = (document.getElementById(`cell_F${i}`).value || '').trim();
             const rawMoist = (document.getElementById(`cell_G${i}`).value || '').trim();
 
             const amt = w * r;
             document.getElementById(`cell_E${i}`).value = amt ? amt.toFixed(2) : '';
 
-            const isFilled = item || w || r || rawLab || rawMoist || document.getElementById(`cell_A${i}`).value;
+            const isFilled = party || item || w || r || rawLab || rawMoist;
             tr.className = isFilled ? '' : 'empty-row';
 
             if (w > 0) {
@@ -465,6 +470,7 @@
         document.getElementById('topTotalWeight').value = sumW ? sumW.toFixed(2) : '0';
         document.getElementById('topResult').value = sumW ? (sumAmt / sumW).toFixed(2) : '0';
 
+        // Lab Display
         const labCard = document.getElementById('labResultCard');
         if (countLabWeight > 0) {
             labCard.style.display = 'block';
@@ -473,15 +479,16 @@
             document.getElementById('totalLab').value = avg;
         } else if (labTextCount > 0) {
             labCard.style.display = 'block';
-            const txtDisplay = labTextCount === 1 ? lastLabText : `${labTextCount} Rows`;
-            document.getElementById('topLabResult').value = txtDisplay;
-            document.getElementById('totalLab').value = txtDisplay;
+            const txt = labTextCount === 1 ? lastLabText : `${labTextCount} Rows`;
+            document.getElementById('topLabResult').value = txt;
+            document.getElementById('totalLab').value = txt;
         } else {
             labCard.style.display = 'none';
             document.getElementById('topLabResult').value = '';
             document.getElementById('totalLab').value = '';
         }
 
+        // Moisture Display
         const moistCard = document.getElementById('moistureResultCard');
         if (countMoistWeight > 0) {
             moistCard.style.display = 'block';
@@ -490,9 +497,9 @@
             document.getElementById('totalMoisture').value = avg;
         } else if (moistTextCount > 0) {
             moistCard.style.display = 'block';
-            const txtDisplay = moistTextCount === 1 ? lastMoistText : `${moistTextCount} Rows`;
-            document.getElementById('topMoistureResult').value = txtDisplay;
-            document.getElementById('totalMoisture').value = txtDisplay;
+            const txt = moistTextCount === 1 ? lastMoistText : `${moistTextCount} Rows`;
+            document.getElementById('topMoistureResult').value = txt;
+            document.getElementById('totalMoisture').value = txt;
         } else {
             moistCard.style.display = 'none';
             document.getElementById('topMoistureResult').value = '';
@@ -520,7 +527,7 @@
         const partyHistory = JSON.parse(localStorage.getItem('party_history')) || {};
 
         for (let i = 1; i <= ROW_COUNT; i++) {
-            const party = document.getElementById(`cell_A${i}`).value;
+            const party = document.getElementById(`cell_A${i}`).value.trim();
             const item = document.getElementById(`cell_Item${i}`).value;
             const weight = document.getElementById(`cell_C${i}`).value;
             const rate = document.getElementById(`cell_D${i}`).value;
@@ -530,11 +537,11 @@
             rows.push({ party, item, weight, rate, lab, moisture });
 
             if (party) {
-                partyHistory[party] = {
-                    item: item || (partyHistory[party]?.item || ''),
-                    rate: rate || (partyHistory[party]?.rate || ''),
-                    lab: lab || (partyHistory[party]?.lab || ''),
-                    moisture: moisture || (partyHistory[party]?.moisture || '')
+                partyHistory[party.toLowerCase()] = {
+                    item: item || (partyHistory[party.toLowerCase()]?.item || ''),
+                    rate: rate || (partyHistory[party.toLowerCase()]?.rate || ''),
+                    lab: lab || (partyHistory[party.toLowerCase()]?.lab || ''),
+                    moisture: moisture || (partyHistory[party.toLowerCase()]?.moisture || '')
                 };
             }
         }
@@ -559,10 +566,11 @@
         calculate();
     }
 
-    function handlePartyChange(e) {
+    // Auto-fill upon selecting/typing a known party
+    function handlePartyAutoFill(e) {
         if (!e.target.id.startsWith('cell_A')) return;
         const rowId = e.target.dataset.row;
-        const selectedParty = e.target.value;
+        const selectedParty = e.target.value.trim().toLowerCase();
         if (!selectedParty) return;
 
         const partyHistory = JSON.parse(localStorage.getItem('party_history')) || {};
@@ -581,14 +589,17 @@
         }
     }
 
-    // Listeners
-    document.getElementById('form-fields').addEventListener('input', () => {
+    // Event Listeners
+    document.getElementById('form-fields').addEventListener('input', (e) => {
+        if (e.target.id.startsWith('cell_A')) {
+            handlePartyAutoFill(e);
+        }
         calculate();
         triggerAutoSave();
     });
 
     document.getElementById('form-fields').addEventListener('change', (e) => {
-        handlePartyChange(e);
+        handlePartyAutoFill(e);
         calculate();
         triggerAutoSave();
     });
@@ -601,36 +612,28 @@
         if (name && !items.includes(name)) {
             items.push(name);
             localStorage.setItem('items', JSON.stringify(items));
-            populateDropdowns();
+            populateDatalistAndDropdowns();
             input.value = '';
         }
     });
 
     document.getElementById('saveBtn').addEventListener('click', () => saveData(true));
 
-    // Clear All (clears table, row entries, items, and auto-fill memory)
     document.getElementById('clearBtn').addEventListener('click', () => {
-        if (confirm('Clear all entries, custom items, and auto-fill storage?')) {
+        if (confirm('Clear all entries, custom items, and auto-fill memory?')) {
             clearTimeout(autoSaveTimer);
-
-            // 1. Wipe out table inputs & selects
             document.querySelectorAll('#form-fields input').forEach(el => el.value = '');
             document.querySelectorAll('#form-fields select').forEach(el => el.value = '');
 
-            // 2. Clear all local storage caches
             localStorage.removeItem('party_entries');
             localStorage.removeItem('party_history');
             localStorage.removeItem('items');
 
-            // 3. Reset item list to default and re-populate
             items = [...INITIAL_ITEMS];
             document.getElementById('summaryItemSelector').value = 'ALL';
-            populateDropdowns();
-
-            // 4. Reset calculation results
+            populateDatalistAndDropdowns();
             calculate();
 
-            // 5. Update badge
             const statusEl = document.getElementById('saveStatus');
             statusEl.textContent = 'Cleared';
             statusEl.style.color = '#ef4444';
@@ -641,7 +644,7 @@
     document.getElementById('downloadBtn').addEventListener('click', () => {
         let csv = "Row,Party Name,Item Name,Weight,Rate,Amount,Lab,Moisture\n";
         for (let i = 1; i <= ROW_COUNT; i++) {
-            const p = document.getElementById(`cell_A${i}`).value;
+            const p = document.getElementById(`cell_A${i}`).value.trim();
             const it = document.getElementById(`cell_Item${i}`).value;
             const w = document.getElementById(`cell_C${i}`).value;
             const r = document.getElementById(`cell_D${i}`).value;
@@ -664,12 +667,13 @@
         const val = document.getElementById('partyListInput').value;
         parties = val.split('\n').map(p => p.trim()).filter(Boolean);
         localStorage.setItem('parties', JSON.stringify(parties));
-        populateDropdowns();
+        populateDatalistAndDropdowns();
         alert('Party list updated!');
     });
 
+    // Initialize
     buildTable();
-    populateDropdowns();
+    populateDatalistAndDropdowns();
     document.getElementById('partyListInput').value = parties.join('\n');
     loadData();
 </script>
